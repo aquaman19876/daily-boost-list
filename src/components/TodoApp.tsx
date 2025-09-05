@@ -1,81 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { TaskInput } from './TaskInput';
 import { TaskList } from './TaskList';
 import { ProgressStats } from './ProgressStats';
+import { MotivationSection } from './MotivationSection';
 import { Calendar, Target, Repeat } from 'lucide-react';
-
-export interface Task {
-  id: string;
-  text: string;
-  completed: boolean;
-  createdAt: Date;
-  category: 'daily' | 'weekly' | 'monthly';
-}
+import { useTasks } from '@/hooks/useTasks';
 
 const TodoApp = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
   const [activeTab, setActiveTab] = useState<'daily' | 'weekly' | 'monthly'>('daily');
-
-  // Load tasks from localStorage on mount
-  useEffect(() => {
-    const savedTasks = localStorage.getItem('todoTasks');
-    if (savedTasks) {
-      const parsed = JSON.parse(savedTasks);
-      setTasks(parsed.map((task: any) => ({
-        ...task,
-        createdAt: new Date(task.createdAt)
-      })));
-    }
-
-    // Reset daily tasks at midnight
-    const now = new Date();
-    const lastReset = localStorage.getItem('lastDailyReset');
-    const today = now.toDateString();
-    
-    if (lastReset !== today) {
-      setTasks(prev => prev.map(task => 
-        task.category === 'daily' 
-          ? { ...task, completed: false }
-          : task
-      ));
-      localStorage.setItem('lastDailyReset', today);
-    }
-  }, []);
-
-  // Save tasks to localStorage whenever tasks change
-  useEffect(() => {
-    localStorage.setItem('todoTasks', JSON.stringify(tasks));
-  }, [tasks]);
-
-  const addTask = (text: string) => {
-    const newTask: Task = {
-      id: crypto.randomUUID(),
-      text,
-      completed: false,
-      createdAt: new Date(),
-      category: activeTab
-    };
-    setTasks(prev => [...prev, newTask]);
-  };
-
-  const toggleTask = (id: string) => {
-    setTasks(prev => 
-      prev.map(task => 
-        task.id === id 
-          ? { ...task, completed: !task.completed }
-          : task
-      )
-    );
-  };
-
-  const deleteTask = (id: string) => {
-    setTasks(prev => prev.filter(task => task.id !== id));
-  };
+  const { tasks, loading, addTask, toggleTask, deleteTask } = useTasks();
 
   const getTasksByCategory = (category: 'daily' | 'weekly' | 'monthly') => {
     return tasks.filter(task => task.category === category);
+  };
+
+  const handleAddTask = (text: string) => {
+    addTask(text, activeTab);
   };
 
   const tabConfig = {
@@ -84,18 +26,18 @@ const TodoApp = () => {
     monthly: { icon: Target, label: 'Monthly', color: 'text-success' }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background p-4 md:p-6">
       <div className="max-w-2xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-            My Tasks
-          </h1>
-          <p className="text-muted-foreground">Stay focused, get things done</p>
-        </div>
-
-        {/* Progress Stats */}
+        {/* Progress Stats - Moved to top */}
         <ProgressStats tasks={getTasksByCategory(activeTab)} category={activeTab} />
 
         {/* Main Todo Interface */}
@@ -120,7 +62,7 @@ const TodoApp = () => {
 
             {Object.keys(tabConfig).map(category => (
               <TabsContent key={category} value={category} className="space-y-4">
-                <TaskInput onAddTask={addTask} category={category as any} />
+                <TaskInput onAddTask={handleAddTask} />
                 <TaskList 
                   tasks={getTasksByCategory(category as any)}
                   onToggleTask={toggleTask}
@@ -130,6 +72,9 @@ const TodoApp = () => {
             ))}
           </Tabs>
         </Card>
+
+        {/* Motivation Section - Moved to bottom */}
+        <MotivationSection tasks={getTasksByCategory(activeTab)} />
       </div>
     </div>
   );

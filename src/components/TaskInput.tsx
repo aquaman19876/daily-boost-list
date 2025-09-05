@@ -5,10 +5,9 @@ import { Plus, Sparkles } from 'lucide-react';
 
 interface TaskInputProps {
   onAddTask: (text: string) => void;
-  category: 'daily' | 'weekly' | 'monthly';
 }
 
-export const TaskInput: React.FC<TaskInputProps> = ({ onAddTask, category }) => {
+export const TaskInput: React.FC<TaskInputProps> = ({ onAddTask }) => {
   const [input, setInput] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -19,19 +18,13 @@ export const TaskInput: React.FC<TaskInputProps> = ({ onAddTask, category }) => 
     }
   };
 
-  const placeholders = {
-    daily: 'What will you accomplish today?',
-    weekly: 'What\'s your goal this week?',
-    monthly: 'What do you want to achieve this month?'
-  };
-
   return (
     <form onSubmit={handleSubmit} className="flex gap-2">
       <div className="relative flex-1">
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={placeholders[category]}
+          placeholder="Add a new task..."
           className="pr-12 bg-background/50 border-border/50 focus:border-primary/50 focus:ring-primary/20 h-12 text-base"
         />
         <Sparkles className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/50" />

@@ -1,6 +1,7 @@
 import React from 'react';
-import { Task } from './TodoApp';
+import { Task } from '@/hooks/useTasks';
 import { TaskItem } from './TaskItem';
+import { Plus } from 'lucide-react';
 
 interface TaskListProps {
   tasks: Task[];
@@ -12,12 +13,12 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onToggleTask, onDelet
   if (tasks.length === 0) {
     return (
       <div className="text-center py-12 space-y-4">
-        <div className="w-24 h-24 mx-auto bg-primary-light rounded-full flex items-center justify-center">
-          <span className="text-4xl">✨</span>
+        <div className="w-16 h-16 mx-auto bg-secondary rounded-full flex items-center justify-center">
+          <Plus className="w-8 h-8 text-muted-foreground" />
         </div>
-        <div className="space-y-2">
-          <h3 className="text-lg font-medium text-foreground">Ready to be productive?</h3>
-          <p className="text-muted-foreground">Add your first task above to get started</p>
+        <div className="space-y-1">
+          <h3 className="text-lg font-medium text-foreground">No tasks yet</h3>
+          <p className="text-muted-foreground text-sm">Add your first task to get started</p>
         </div>
       </div>
     );
@@ -26,7 +27,7 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onToggleTask, onDelet
   // Sort tasks: incomplete first, then completed
   const sortedTasks = [...tasks].sort((a, b) => {
     if (a.completed === b.completed) {
-      return b.createdAt.getTime() - a.createdAt.getTime();
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     }
     return a.completed ? 1 : -1;
   });
